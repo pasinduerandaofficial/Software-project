@@ -1,7 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const courseController = require('../controllers/courseController');
+const { getAllCourses, createCourse } = require('../controllers/courseController');
+const { protect, restrictTo } = require('../middleware/authMiddleware');
 
-// TODO: Add routes here
+router.use(protect);
+
+router.route('/')
+  .get(getAllCourses) // Anyone logged in can view courses
+  .post(restrictTo('admin'), createCourse); // Only admin can create
 
 module.exports = router;
