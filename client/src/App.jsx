@@ -78,7 +78,7 @@ function App() {
 
           {/* Student Routes */}
           <Route element={<ProtectedRoute allowedRoles={['student']} />}>
-            <Route element={<Layout links={studentLinks} notice="Important: End of semester exams start next week!" />}>
+            <Route element={<Layout links={studentLinks} />}>
               <Route path="/student/overview" element={<StudentOverview />} />
               <Route path="/student/results" element={<StudentResults />} />
               <Route path="/student/timetable" element={<StudentTimetable />} />
@@ -88,7 +88,7 @@ function App() {
 
           {/* Lecturer Routes */}
           <Route element={<ProtectedRoute allowedRoles={['lecturer']} />}>
-            <Route element={<Layout links={lecturerLinks} notice="Reminder: Grade submission deadline is Friday." />}>
+            <Route element={<Layout links={lecturerLinks} />}>
               <Route path="/lecturer/overview" element={<LecturerOverview />} />
               <Route path="/lecturer/results-entry" element={<LecturerResultsEntry />} />
               <Route path="/lecturer/analytics" element={<LecturerAnalytics />} />
@@ -99,7 +99,7 @@ function App() {
 
           {/* Admin Routes */}
           <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
-            <Route element={<Layout links={adminLinks} notice={null} />}>
+            <Route element={<Layout links={adminLinks} />}>
               <Route path="/admin/dashboard" element={<AdminOverview />} />
               <Route path="/admin/users" element={<AdminUsers />} />
               <Route path="/admin/courses" element={<AdminCourses />} />

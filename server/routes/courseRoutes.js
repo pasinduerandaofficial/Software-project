@@ -1,7 +1,15 @@
 const express = require('express');
 const router = express.Router();
-const courseController = require('../controllers/courseController');
+const { getAllCourses, getMyCourses, createCourse } = require('../controllers/courseController');
+const { protect, restrictTo } = require('../middleware/authMiddleware');
 
-// TODO: Add routes here
+router.use(protect);
+
+router.route('/')
+  .get(getAllCourses)
+  .post(restrictTo('admin'), createCourse);
+
+router.route('/my-courses')
+  .get(restrictTo('lecturer'), getMyCourses);
 
 module.exports = router;
