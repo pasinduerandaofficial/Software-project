@@ -4,13 +4,11 @@ const { getAllUsers, createUser, deleteUser } = require('../controllers/userCont
 const { protect, restrictTo } = require('../middleware/authMiddleware');
 
 router.use(protect);
-router.use(restrictTo('admin'));
-
 router.route('/')
-  .get(getAllUsers)
-  .post(createUser);
+  .get(restrictTo('admin', 'lecturer'), getAllUsers)
+  .post(restrictTo('admin'), createUser);
 
 router.route('/:id')
-  .delete(deleteUser);
+  .delete(restrictTo('admin'), deleteUser);
 
 module.exports = router;
