@@ -1,20 +1,20 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const db = require('./config/db'); // Initialize DB connection
+const db = require('./config/db'); 
 
 const app = express();
 
-// Middleware
-app.use(cors());
-app.use(express.json()); // Parse JSON bodies
 
-// Basic Health Check Route
+app.use(cors());
+app.use(express.json()); 
+
+
 app.get('/', (req, res) => {
   res.send('Geomatics Portal API is running!');
 });
 
-// Route Mounts
+
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/users', require('./routes/userRoutes'));
 app.use('/api/courses', require('./routes/courseRoutes'));
