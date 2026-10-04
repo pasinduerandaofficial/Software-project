@@ -4,16 +4,20 @@ import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/common/ProtectedRoute';
 import Navbar from './components/common/Navbar';
 import Sidebar from './components/common/Sidebar';
-import NoticeBanner from './components/common/NoticeBanner';
 
-// Auth
+
+// Auth & Selection
 import Login from './pages/auth/Login';
+import SelectOffice from './pages/SelectOffice';
 
 // Student
 import StudentOverview from './pages/student/Overview';
 import StudentResults from './pages/student/Results';
 import StudentTimetable from './pages/student/Timetable';
 import StudentMedical from './pages/student/Medical';
+import StudentNotices from './pages/student/Notices';
+
+import StudentSubmissions from './pages/student/Submissions';
 
 // Lecturer
 import LecturerOverview from './pages/lecturer/Overview';
@@ -29,11 +33,14 @@ import AdminUsers from './pages/admin/Users';
 import AdminTimetable from './pages/admin/Timetable';
 import AdminCourses from './pages/admin/Courses';
 import AdminMedical from './pages/admin/Medical';
+import AdminSubmissions from './pages/admin/Submissions';
 
 const studentLinks = [
+  { label: 'Notice Board', path: '/student/notices' },
   { label: 'Overview', path: '/student/overview' },
-  { label: 'Results', path: '/student/results' },
+  { label: 'Submission', path: '/student/submission' },
   { label: 'Timetable', path: '/student/timetable' },
+  { label: 'Results', path: '/student/results' },
   { label: 'Medical', path: '/student/medical' },
 ];
 
@@ -51,6 +58,7 @@ const adminLinks = [
   { label: 'Courses', path: '/admin/courses' },
   { label: 'Timetable', path: '/admin/timetable' },
   { label: 'Notices', path: '/admin/notices' },
+  { label: 'Submissions', path: '/admin/submissions' },
   { label: 'Medical', path: '/admin/medical' },
 ];
 
@@ -58,7 +66,7 @@ const adminLinks = [
 const Layout = ({ links, notice }) => (
   <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', margin: 0, padding: 0 }}>
     <Navbar />
-    <NoticeBanner message={notice} />
+
     <div style={{ display: 'flex', flex: 1 }}>
       <Sidebar links={links} />
       <main style={{ flex: 1, padding: '2rem' }}>
@@ -76,6 +84,11 @@ function App() {
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/login" element={<Login />} />
 
+          {/* Department Selection (Protected but No Layout) */}
+          <Route element={<ProtectedRoute />}>
+            <Route path="/select-office" element={<SelectOffice />} />
+          </Route>
+
           {/* Student Routes */}
           <Route element={<ProtectedRoute allowedRoles={['student']} />}>
             <Route element={<Layout links={studentLinks} />}>
@@ -83,6 +96,8 @@ function App() {
               <Route path="/student/results" element={<StudentResults />} />
               <Route path="/student/timetable" element={<StudentTimetable />} />
               <Route path="/student/medical" element={<StudentMedical />} />
+              <Route path="/student/notices" element={<StudentNotices />} />
+              <Route path="/student/submission" element={<StudentSubmissions />} />
             </Route>
           </Route>
 
@@ -105,6 +120,7 @@ function App() {
               <Route path="/admin/courses" element={<AdminCourses />} />
               <Route path="/admin/timetable" element={<AdminTimetable />} />
               <Route path="/admin/notices" element={<AdminNotices />} />
+              <Route path="/admin/submissions" element={<AdminSubmissions />} />
               <Route path="/admin/medical" element={<AdminMedical />} />
             </Route>
           </Route>

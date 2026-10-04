@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getAllUsers, createUser, deleteUser } = require('../controllers/userController');
+const { getAllUsers, createUser, deleteUser, updateUser } = require('../controllers/userController');
 const { protect, restrictTo } = require('../middleware/authMiddleware');
 
 router.use(protect);
@@ -9,6 +9,7 @@ router.route('/')
   .post(restrictTo('admin'), createUser);
 
 router.route('/:id')
+  .put(restrictTo('admin'), updateUser)
   .delete(restrictTo('admin'), deleteUser);
 
 module.exports = router;

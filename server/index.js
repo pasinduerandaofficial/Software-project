@@ -22,6 +22,8 @@ app.use('/api/medical', require('./routes/medicalRoutes'));
 app.use('/api/notices', require('./routes/noticeRoutes'));
 app.use('/api/results', require('./routes/resultRoutes'));
 app.use('/api/timetable', require('./routes/timetableRoutes'));
+app.use('/api/messages', require('./routes/messageRoutes'));
+app.use('/api/submissions', require('./routes/submissionRoutes'));
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {

@@ -1,15 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { Bell } from 'lucide-react';
 import axios from 'axios';
+import { useAuth } from '../../context/AuthContext';
 
 export default function NoticeBanner() {
   const [notice, setNotice] = useState(null);
+  const { selectedDepartment } = useAuth();
 
   useEffect(() => {
     // Fetch active notices and just display the most recent one
     const fetchNotices = async () => {
       try {
-        const res = await axios.get('/api/notices');
+        const url = selectedDepartment ? `/api/notices?department=${selectedDepartment}` : '/api/notices';
+        const res = await axios.get(url);
         if (res.data && res.data.length > 0) {
           setNotice(res.data[0].message);
         } else {

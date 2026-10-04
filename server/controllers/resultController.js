@@ -3,10 +3,11 @@ const pool = require('../config/db');
 const getMyResults = async (req, res) => {
   try {
     const [rows] = await pool.query(`
-      SELECT r.id, r.grade, c.code, c.title, c.credits 
+      SELECT r.id, r.grade, r.semester, r.academic_year, c.code, c.title, c.credits 
       FROM results r 
       JOIN courses c ON r.course_id = c.id 
       WHERE r.student_id = ?
+      ORDER BY r.semester ASC, c.code ASC
     `, [req.user.id]);
     res.json(rows);
   } catch (error) {

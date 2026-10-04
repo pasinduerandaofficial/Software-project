@@ -28,17 +28,23 @@ async function initDB() {
     // Switch to database
     await connection.query(`USE ${process.env.DB_NAME || 'geomatics_portal'}`);
 
-    // Create default Admin user if not exists
-    const [rows] = await connection.query('SELECT * FROM users WHERE reg_no = "admin"');
+    // Create default Admin users if not exists
+    const [rows] = await connection.query('SELECT * FROM users WHERE role = "admin"');
     if (rows.length === 0) {
       const hashedPassword = await bcrypt.hash('admin123', 10);
       await connection.query(
-        'INSERT INTO users (reg_no, name, password_hash, role) VALUES (?, ?, ?, ?)',
-        ['admin', 'System Admin', hashedPassword, 'admin']
+        'INSERT INTO users (reg_no, name, password_hash, role, department) VALUES (?, ?, ?, ?, ?)',
+        ['admin_sugeo', 'SUGEO Admin', hashedPassword, 'admin', 'SUGEO']
       );
-      console.log('Default admin account created (reg_no: admin, password: admin123)');
+      await connection.query(
+        'INSERT INTO users (reg_no, name, password_hash, role, department) VALUES (?, ?, ?, ?, ?)',
+        ['admin_rsgis', 'RS_GIS Admin', hashedPassword, 'admin', 'RS_GIS']
+      );
+      console.log('Default admin accounts created (admin_sugeo, admin_rsgis)');
     } else {
-      console.log('Admin account already exists.');
+      console.log('Admin accounts already exist.');
+      // Optional: migrate old admin
+      await connection.query('UPDATE users SET department = "SUGEO" WHERE reg_no = "admin" AND department IS NULL');
     }
 
     // Create default Student and Lecturer for demo
