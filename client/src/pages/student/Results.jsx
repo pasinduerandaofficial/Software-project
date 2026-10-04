@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Download, AlertCircle } from 'lucide-react';
+import { Download, AlertCircle, Award, BookOpen, GraduationCap } from 'lucide-react';
 import axios from 'axios';
+import { useAuth } from '../../context/AuthContext';
 
-export default function Results() {
+export default function StudentResults() {
+  const { user } = useAuth();
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -20,7 +22,6 @@ export default function Results() {
     fetchResults();
   }, []);
 
-  // Helper function to convert grade to GPA points
   const getGradePoint = (grade) => {
     switch (grade) {
       case 'A+': return 4.0;
@@ -32,79 +33,122 @@ export default function Results() {
       case 'C+': return 2.3;
       case 'C': return 2.0;
       case 'C-': return 1.7;
+      case 'D+': return 1.3;
+      case 'D': return 1.0;
+      case 'E': return 0.0;
       case 'F': return 0.0;
       default: return 0.0;
     }
   };
 
-  // Calculate SGPA dynamically based on fetched results
-  const calculateSGPA = () => {
-    if (results.length === 0) return 0.00;
-    
+  const calculateGPA = (courses) => {
+    if (!courses || courses.length === 0) return 0.00;
     let totalPoints = 0;
     let totalCredits = 0;
-    
-    results.forEach(res => {
-      totalPoints += getGradePoint(res.grade) * res.credits;
-      totalCredits += res.credits;
+    courses.forEach(c => {
+      totalPoints += getGradePoint(c.grade) * c.credits;
+      totalCredits += c.credits;
     });
-
     return totalCredits === 0 ? 0.00 : (totalPoints / totalCredits).toFixed(2);
   };
 
+  const cgpa = calculateGPA(results);
+  
+  // Group by semester (1 to 8)
+  const semesters = [1, 2, 3, 4, 5, 6, 7, 8].map(sem => ({
+    id: sem,
+    label: `Semester ${sem}`,
+    courses: results.filter(r => r.semester === sem)
+  }));
+
+  const getThemeColor = () => user?.department === 'SUGEO' ? 'text-emerald-400 border-emerald-500 bg-emerald-500/10' : 'text-indigo-400 border-indigo-500 bg-indigo-500/10';
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+    <div className="flex flex-col gap-8 max-w-5xl mx-auto w-full font-sans pb-12">
+      
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 style={{ fontSize: '1.875rem' }}>Academic Results</h1>
-          <p style={{ color: 'var(--text-secondary)' }}>View your official grades and transcript.</p>
+          <h1 className="text-3xl font-bold text-white mb-2">Academic Transcript</h1>
+          <p className="text-neutral-400">
+            Official results breakdown for <span className="font-semibold text-neutral-200">{user?.regNo}</span>.
+          </p>
         </div>
-        <button className="btn btn-primary" style={{ display: 'flex', gap: '0.5rem' }}>
-          <Download size={18} /> Download Transcript
+        <button className="flex items-center gap-2 bg-neutral-900 hover:bg-neutral-800 border border-neutral-700 text-white px-4 py-2 rounded-xl transition-colors font-semibold shadow-lg">
+          <Download size={18} /> Export PDF
         </button>
       </div>
 
-      <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-        <div style={{ padding: '1rem', background: '#F3F4F6', borderBottom: '1px solid var(--border-light)', fontWeight: 600, display: 'flex', justifyContent: 'space-between' }}>
-          <span>Current GPA</span>
-          <span style={{ color: 'var(--primary)', fontSize: '1.125rem' }}>{calculateSGPA()}</span>
+      {/* CGPA Card */}
+      <div className="bg-neutral-900/50 backdrop-blur-xl border border-neutral-800 rounded-3xl p-6 shadow-2xl flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <div className={`p-4 rounded-2xl ${getThemeColor()}`}>
+            <GraduationCap size={32} />
+          </div>
+          <div>
+            <h2 className="text-neutral-400 font-semibold tracking-wide uppercase text-sm">Cumulative GPA</h2>
+            <div className="text-4xl font-bold text-white mt-1">{cgpa}</div>
+          </div>
         </div>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead style={{ background: 'var(--bg-main)', borderBottom: '1px solid var(--border-light)' }}>
-            <tr>
-              <th style={{ padding: '1rem', textAlign: 'left', fontWeight: 600, color: 'var(--text-secondary)' }}>Course Code</th>
-              <th style={{ padding: '1rem', textAlign: 'left', fontWeight: 600, color: 'var(--text-secondary)' }}>Title</th>
-              <th style={{ padding: '1rem', textAlign: 'left', fontWeight: 600, color: 'var(--text-secondary)' }}>Credits</th>
-              <th style={{ padding: '1rem', textAlign: 'right', fontWeight: 600, color: 'var(--text-secondary)' }}>Grade</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
-              <tr><td colSpan="4" style={{ padding: '1.5rem', textAlign: 'center' }}>Loading your results...</td></tr>
-            ) : results.map((result) => (
-              <tr key={result.id} style={{ borderBottom: '1px solid var(--border-light)' }}>
-                <td style={{ padding: '1rem', fontWeight: 500 }}>{result.code}</td>
-                <td style={{ padding: '1rem' }}>{result.title}</td>
-                <td style={{ padding: '1rem' }}>{result.credits}</td>
-                <td style={{ padding: '1rem', textAlign: 'right', fontWeight: 700, color: 'var(--primary)', fontSize: '1.125rem' }}>
-                  {result.grade}
-                </td>
-              </tr>
-            ))}
-            
-            {results.length === 0 && !loading && (
-              <tr>
-                <td colSpan="4" style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
-                    <AlertCircle size={32} color="var(--warning)" />
-                    <p>No results have been published for you yet.</p>
-                  </div>
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+        <div className="text-right">
+          <div className="text-neutral-500 text-sm font-medium">Total Credits Completed</div>
+          <div className="text-2xl font-bold text-neutral-200 mt-1">
+            {results.reduce((acc, c) => acc + c.credits, 0)}
+          </div>
+        </div>
       </div>
+
+      {loading ? (
+        <div className="text-center p-8 text-neutral-500 animate-pulse">Loading academic history...</div>
+      ) : results.length === 0 ? (
+        <div className="text-center p-12 bg-neutral-900/30 border border-neutral-800 rounded-3xl text-neutral-500 flex flex-col items-center gap-4">
+          <AlertCircle size={48} className="opacity-50" />
+          <p className="text-lg">No results have been published for your index number yet.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {semesters.map((sem) => {
+            if (sem.courses.length === 0) return null;
+            const sgpa = calculateGPA(sem.courses);
+            
+            return (
+              <div key={sem.id} className="bg-neutral-900/40 backdrop-blur-sm border border-neutral-800 rounded-2xl overflow-hidden flex flex-col">
+                <div className="px-5 py-4 border-b border-neutral-800 bg-neutral-950/50 flex justify-between items-center">
+                  <h3 className="font-bold text-neutral-200 text-lg">{sem.label}</h3>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-neutral-500 uppercase tracking-wider font-bold">SGPA</span>
+                    <span className={`font-bold ${user?.department === 'SUGEO' ? 'text-emerald-400' : 'text-indigo-400'}`}>{sgpa}</span>
+                  </div>
+                </div>
+                
+                <div className="p-2 flex-1">
+                  <table className="w-full text-left">
+                    <thead>
+                      <tr className="text-neutral-500 text-xs uppercase tracking-wider">
+                        <th className="px-3 py-2 font-medium">Course</th>
+                        <th className="px-3 py-2 font-medium text-center">Cr</th>
+                        <th className="px-3 py-2 font-medium text-right">Grade</th>
+                      </tr>
+                    </thead>
+                    <tbody className="text-sm">
+                      {sem.courses.map(course => (
+                        <tr key={course.id} className="border-t border-neutral-800/50 hover:bg-neutral-800/20 transition-colors">
+                          <td className="px-3 py-3">
+                            <div className="font-bold text-neutral-300">{course.code}</div>
+                            <div className="text-neutral-500 text-xs truncate max-w-[200px]" title={course.title}>{course.title}</div>
+                          </td>
+                          <td className="px-3 py-3 text-center text-neutral-400">{course.credits}</td>
+                          <td className="px-3 py-3 text-right font-bold text-neutral-200">{course.grade}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
     </div>
   );
 }

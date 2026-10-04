@@ -1,8 +1,11 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+import { messageService } from '../../services/messageService';
+import { noticeService } from '../../services/noticeService';
 import { 
   LayoutDashboard, BookOpen, Calendar, Activity, 
-  FileText, Users, Settings, Bell, ClipboardList 
+  FileText, Users, Settings, Bell, ClipboardList, MessageSquare
 } from 'lucide-react';
 
 const iconMap = {
@@ -17,21 +20,59 @@ const iconMap = {
   'Users': Users,
   'Courses': BookOpen,
   'Notices': Bell,
+  'Notice Board': Bell,
+  'Submission': FileText,
 };
 
 export default function Sidebar({ links }) {
   const location = useLocation();
+  const { selectedDepartment, user } = useAuth();
+  const [noticeUnreadCount, setNoticeUnreadCount] = useState(0);
+
+  useEffect(() => {
+    let interval;
+    const fetchNoticeUnread = async () => {
+      try {
+        const res = await noticeService.getUnreadCount(selectedDepartment, user?.batchCode);
+        if (res.success) setNoticeUnreadCount(res.unread);
+      } catch (err) {}
+    };
+
+    if (user) {
+      fetchNoticeUnread();
+      interval = setInterval(fetchNoticeUnread, 10000);
+      window.addEventListener('noticesRead', fetchNoticeUnread);
+    }
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('noticesRead', fetchNoticeUnread);
+    };
+  }, [user, selectedDepartment]);
+
+  const getTheme = (dept) => {
+    if (dept === 'SUGEO') return {
+      activeBg: 'bg-emerald-500/10',
+      activeText: 'text-emerald-500',
+      activeShadow: 'shadow-[inset_0_0_0_1px_rgba(16,185,129,0.2)]'
+    };
+    if (dept === 'RS_GIS') return {
+      activeBg: 'bg-indigo-500/10',
+      activeText: 'text-indigo-500',
+      activeShadow: 'shadow-[inset_0_0_0_1px_rgba(99,102,241,0.2)]'
+    };
+    return {
+      activeBg: 'bg-orange-500/10',
+      activeText: 'text-orange-500',
+      activeShadow: 'shadow-[inset_0_0_0_1px_rgba(249,115,22,0.2)]'
+    };
+  };
+
+  const theme = getTheme(selectedDepartment);
 
   return (
-    <aside style={{ 
-      width: '260px', 
-      background: 'var(--bg-surface)', 
-      borderRight: '1px solid var(--border-light)',
-      display: 'flex',
-      flexDirection: 'column'
-    }}>
-      <div style={{ padding: '1.5rem 1rem' }}>
-        <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+    <aside className="w-64 bg-neutral-950 border-r border-neutral-800/80 flex flex-col flex-shrink-0 h-[calc(100vh-64px)] overflow-y-auto">
+      <div className="p-5">
+        <ul className="list-none p-0 m-0 flex flex-col gap-2">
           {links.map((link, idx) => {
             const isActive = location.pathname === link.path;
             const Icon = iconMap[link.label] || Settings;
@@ -40,27 +81,32 @@ export default function Sidebar({ links }) {
               <li key={idx}>
                 <Link 
                   to={link.path} 
-                  style={{ 
-                    display: 'flex', 
-                    alignItems: 'center',
-                    gap: '0.75rem',
-                    padding: '0.75rem 1rem', 
-                    textDecoration: 'none', 
-                    color: isActive ? 'var(--primary)' : 'var(--text-secondary)',
-                    background: isActive ? '#EEF2FF' : 'transparent',
-                    borderRadius: '8px',
-                    fontWeight: isActive ? 600 : 500,
-                    transition: 'all 0.2s'
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!isActive) e.currentTarget.style.background = '#F3F4F6';
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!isActive) e.currentTarget.style.background = 'transparent';
-                  }}
+                  className={`
+                    flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200
+                    ${isActive 
+                      ? `${theme.activeBg} ${theme.activeText} ${theme.activeShadow}` 
+                      : 'text-neutral-400 hover:bg-neutral-900/60 hover:text-neutral-200'}
+                  `}
                 >
-                  <Icon size={20} />
-                  {link.label}
+                  <div className="flex items-center gap-3">
+                    <Icon size={20} className={isActive ? theme.activeText : 'text-neutral-500'} />
+                    {link.label}
+                  </div>
+                  
+                  {link.label === 'Notice Board' && (
+                    <div className="relative flex items-center justify-center">
+                      <span className={`flex h-5 items-center justify-center rounded-full px-2 text-[10px] font-bold shadow-sm ring-1 ring-neutral-950 z-10 ${
+                        noticeUnreadCount > 0 
+                          ? 'bg-orange-500 text-white shadow-[0_0_10px_rgba(249,115,22,0.6)]' 
+                          : 'bg-neutral-800 text-neutral-400'
+                      }`}>
+                        {noticeUnreadCount > 9 ? '9+' : noticeUnreadCount}
+                      </span>
+                      {noticeUnreadCount > 0 && (
+                        <span className="absolute inset-0 rounded-full bg-orange-500 opacity-75 animate-ping pointer-events-none"></span>
+                      )}
+                    </div>
+                  )}
                 </Link>
               </li>
             )

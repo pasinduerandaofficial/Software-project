@@ -8,17 +8,24 @@ export const useAuth = () => useContext(AuthContext);
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [selectedDepartment, setSelectedDepartment] = useState(null);
 
   useEffect(() => {
     // Check if token exists in localStorage on initial load
     const token = localStorage.getItem('token');
     const storedUser = localStorage.getItem('user');
+    const storedDept = localStorage.getItem('selected_department');
 
     if (token && storedUser) {
       setUser(JSON.parse(storedUser));
       // Set default header for all subsequent API requests
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     }
+    
+    if (storedDept) {
+      setSelectedDepartment(storedDept);
+    }
+    
     setLoading(false);
   }, []);
 
@@ -36,8 +43,14 @@ export const AuthProvider = ({ children }) => {
       
       // Attach JWT token to axios defaults
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+
+      // Automatically set department if assigned (e.g. for specific admins)
+      if (user.department) {
+        setSelectedDepartment(user.department);
+        localStorage.setItem('selected_department', user.department);
+      }
       
-      return { success: true, role: user.role };
+      return { success: true, role: user.role, department: user.department };
     } catch (error) {
       return { 
         success: false, 
@@ -45,11 +58,18 @@ export const AuthProvider = ({ children }) => {
       };
     }
   };
+  
+  const setDepartment = (dept) => {
+    setSelectedDepartment(dept);
+    localStorage.setItem('selected_department', dept);
+  };
 
   const logout = () => {
     setUser(null);
+    setSelectedDepartment(null);
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    localStorage.removeItem('selected_department');
     delete axios.defaults.headers.common['Authorization'];
   };
 
@@ -58,7 +78,7 @@ export const AuthProvider = ({ children }) => {
   }
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user, login, logout, selectedDepartment, setDepartment }}>
       {children}
     </AuthContext.Provider>
   );

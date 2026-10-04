@@ -20,9 +20,36 @@ export default function Overview() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
       
       {/* Header section */}
-      <div>
-        <h1 style={{ fontSize: '1.875rem', color: 'var(--text-primary)' }}>Welcome back, {user?.name.split(' ')[0]} 👋</h1>
-        <p style={{ color: 'var(--text-secondary)', marginTop: '0.25rem' }}>Here is what's happening with your academics today.</p>
+      <div className="bg-neutral-900/50 backdrop-blur-md border border-neutral-800 rounded-2xl p-6 shadow-xl mb-6 relative overflow-hidden">
+        <div className={`absolute top-0 right-0 w-64 h-64 bg-gradient-to-br ${
+          user?.department === 'SUGEO' ? 'from-emerald-500/10' : 'from-indigo-500/10'
+        } rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none`}></div>
+        
+        <h1 className="text-3xl font-bold text-white mb-2 relative z-10">
+          Welcome back, {user?.name?.split(' ')[0]} 👋
+        </h1>
+        <p className="text-neutral-400 mb-6 relative z-10">Here is what's happening with your academics today.</p>
+        
+        <div className="flex flex-wrap gap-3 relative z-10">
+          <div className="bg-neutral-950/50 border border-neutral-800/80 rounded-lg px-4 py-2 flex flex-col">
+            <span className="text-[10px] text-neutral-500 font-bold uppercase tracking-wider mb-0.5">Index Number</span>
+            <span className="text-sm font-semibold text-neutral-200">{user?.regNo}</span>
+          </div>
+          <div className="bg-neutral-950/50 border border-neutral-800/80 rounded-lg px-4 py-2 flex flex-col">
+            <span className="text-[10px] text-neutral-500 font-bold uppercase tracking-wider mb-0.5">Active Batch</span>
+            <span className={`text-sm font-semibold ${user?.department === 'SUGEO' ? 'text-emerald-400' : 'text-indigo-400'}`}>
+              Batch {user?.batchCode ? user.batchCode.replace(/[^0-9]/g, '') : 'N/A'} ({user?.batchCode})
+            </span>
+          </div>
+          <div className="bg-neutral-950/50 border border-neutral-800/80 rounded-lg px-4 py-2 flex flex-col">
+            <span className="text-[10px] text-neutral-500 font-bold uppercase tracking-wider mb-0.5">Academic Year</span>
+            <span className="text-sm font-semibold text-orange-400">Year {user?.academicYear || 1}</span>
+          </div>
+          <div className="bg-neutral-950/50 border border-neutral-800/80 rounded-lg px-4 py-2 flex flex-col">
+            <span className="text-[10px] text-neutral-500 font-bold uppercase tracking-wider mb-0.5">Current Semester</span>
+            <span className="text-sm font-semibold text-purple-400">Semester {user?.currentSemester || 1}</span>
+          </div>
+        </div>
       </div>
 
       {/* Stats Grid */}
